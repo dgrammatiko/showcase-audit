@@ -1,15 +1,14 @@
 {
   "name": "untitled-folder",
   "version": "1.0.0",
-  "description": "",
+  "description": "The hard truth",
   "main": "index.js",
   "scripts": {
     "rollup": "rollup --config rollup.config.js",
-    "build": "npx eleventy build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx eleventy build"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Dimitris Grammatikogiannis",
+  "license": "MIT",
   "devDependencies": {
     "@11ty/eleventy": "0.10.0",
     "axios": "0.19.2",
