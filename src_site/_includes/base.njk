@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="googlebot" content="noindex">
+    <meta name="Description" content="Sorry no description">
+    <title>Some thoughts</title>
+    <style>{{ 'css/almond.css' | inlineCss | safe }}</style>
+    <style>{{ 'css/toggler.css' | inlineCss | safe }}</style>
+    <script>this.customElements||document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');</script>
+  </head>
+
+  <body>
+    {{ layoutContent | safe }}
+    <script src="/js/toggler.esm.js" type=module></script>
+    <script src="/js/toggler.es5.js" nomodule></script>
+  </body>
+
+</html>
