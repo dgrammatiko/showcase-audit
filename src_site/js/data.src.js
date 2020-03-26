@@ -29,8 +29,6 @@ fetch('/data/final.json')
 .then(status)
 .then(json)
 .then(function(data) {
-  console.log('Request succeeded with JSON response', data);
-
   render(document.getElementById('content'), html`
   <ul class="cards">${
     data.map((item, i) => 
