@@ -1,0 +1,24 @@
+{
+  "name": "untitled-folder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "fs": "0.0.1-security",
+    "fs-extra": "^9.0.0",
+    "glob": "^7.1.6",
+    "http-server": "^0.12.1",
+    "pageres": "^5.2.0",
+    "pageres-cli": "^5.0.0",
+    "performance-leaderboard": "^1.0.1",
+    "puppeteer": "^2.1.1",
+    "sharp": "^0.25.2"
+  }
+}

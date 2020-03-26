@@ -1,0 +1,23 @@
+{
+  "medianPerformance": 50.666666666666664,
+  "medianFirstContentfulPaint": 3.6,
+  "medianFirstMeaningfulPaint": 4.2,
+  "sitesNoHttps": 422,
+  "failingPerformance": 378,
+  "failingFMP": 556,
+  "failing1Sec": 721,
+  "failingInteractive": 501,
+  "failingBestPractices": 74,
+  "failingAccessibility": 68,
+  "failingSEO": 45,
+  "failingCarbon": 387,
+  "sitesNoHttpspc": 55.019556714471975,
+  "failing1Secpc": 94.0026075619296,
+  "failingPerformancepc": 49.282920469361144,
+  "failingFMPpc": 72.49022164276401,
+  "failingInteractivepc": 65.31942633637549,
+  "failingBestPracticespc": 9.647979139504564,
+  "failingAccessibilitypc": 8.865710560625816,
+  "failingSEOpc": 5.867014341590613,
+  "failingCarbonpc": 50.456323337679265
+}
