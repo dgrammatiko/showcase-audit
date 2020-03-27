@@ -1,157 +1,3 @@
-/*! (c) Andrea Giammarchi - ISC */
-var self = null || /* istanbul ignore next */ {};
-try { self.WeakMap = WeakMap; }
-catch (WeakMap) {
-  // this could be better but 90% of the time
-  // it's everything developers need as fallback
-  self.WeakMap = (function (id, Object) {    var dP = Object.defineProperty;
-    var hOP = Object.hasOwnProperty;
-    var proto = WeakMap.prototype;
-    proto.delete = function (key) {
-      return this.has(key) && delete key[this._];
-    };
-    proto.get = function (key) {
-      return this.has(key) ? key[this._] : void 0;
-    };
-    proto.has = function (key) {
-      return hOP.call(key, this._);
-    };
-    proto.set = function (key, value) {
-      dP(key, this._, {configurable: true, value: value});
-      return this;
-    };
-    return WeakMap;
-    function WeakMap(iterable) {
-      dP(this, '_', {value: '_@ungap/weakmap' + id++});
-      if (iterable)
-        iterable.forEach(add, this);
-    }
-    function add(pair) {
-      this.set(pair[0], pair[1]);
-    }
-  }(Math.random(), Object));
-}
-var WeakMap$1 = self.WeakMap;
-
-var isNoOp = typeof document !== 'object';
-
-var templateLiteral = function (tl) {
-  var RAW = 'raw';
-  var isBroken = function (UA) {
-    return /(Firefox|Safari)\/(\d+)/.test(UA) &&
-          !/(Chrom[eium]+|Android)\/(\d+)/.test(UA);
-  };
-  var broken = isBroken((document.defaultView.navigator || {}).userAgent);
-  var FTS = !(RAW in tl) ||
-            tl.propertyIsEnumerable(RAW) ||
-            !Object.isFrozen(tl[RAW]);
-  if (broken || FTS) {
-    var forever = {};
-    var foreverCache = function (tl) {
-      for (var key = '.', i = 0; i < tl.length; i++)
-        key += tl[i].length + '.' + tl[i];
-      return forever[key] || (forever[key] = tl);
-    };
-    // Fallback TypeScript shenanigans
-    if (FTS)
-      templateLiteral = foreverCache;
-    // try fast path for other browsers:
-    // store the template as WeakMap key
-    // and forever cache it only when it's not there.
-    // this way performance is still optimal,
-    // penalized only when there are GC issues
-    else {
-      var wm = new WeakMap$1;
-      var set = function (tl, unique) {
-        wm.set(tl, unique);
-        return unique;
-      };
-      templateLiteral = function (tl) {
-        return wm.get(tl) || set(tl, foreverCache(tl));
-      };
-    }
-  } else {
-    isNoOp = true;
-  }
-  return TL(tl);
-};
-
-function TL(tl) {
-  return isNoOp ? tl : templateLiteral(tl);
-}
-
-function tta (template) {
-  var length = arguments.length;
-  var args = [TL(template)];
-  var i = 1;
-  while (i < length)
-    args.push(arguments[i++]);
-  return args;
-}
-
-/*! (c) Andrea Giammarchi - ISC */
-
-// Custom
-var UID = '-' + Math.random().toFixed(6) + '%';
-//                           Edge issue!
-
-var UID_IE = false;
-
-try {
-  if (!(function (template, content, tabindex) {
-    return content in template && (
-      (template.innerHTML = '<p ' + tabindex + '="' + UID + '"></p>'),
-      template[content].childNodes[0].getAttribute(tabindex) == UID
-    );
-  }(document.createElement('template'), 'content', 'tabindex'))) {
-    UID = '_dt: ' + UID.slice(1, -1) + ';';
-    UID_IE = true;
-  }
-} catch(meh) {}
-
-var UIDC = '<!--' + UID + '-->';
-
-// DOM
-var COMMENT_NODE = 8;
-var ELEMENT_NODE = 1;
-var TEXT_NODE = 3;
-
-var SHOULD_USE_TEXT_CONTENT = /^(?:style|textarea)$/i;
-var VOID_ELEMENTS = /^(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)$/i;
-
-/*! (c) Andrea Giammarchi - ISC */
-
-function domsanitizer (template) {
-  return template.join(UIDC)
-          .replace(selfClosing, fullClosing)
-          .replace(attrSeeker, attrReplacer);
-}
-
-var spaces = ' \\f\\n\\r\\t';
-var almostEverything = '[^' + spaces + '\\/>"\'=]+';
-var attrName = '[' + spaces + ']+' + almostEverything;
-var tagName = '<([A-Za-z]+[A-Za-z0-9:._-]*)((?:';
-var attrPartials = '(?:\\s*=\\s*(?:\'[^\']*?\'|"[^"]*?"|<[^>]*?>|' + almostEverything.replace('\\/', '') + '))?)';
-
-var attrSeeker = new RegExp(tagName + attrName + attrPartials + '+)([' + spaces + ']*/?>)', 'g');
-var selfClosing = new RegExp(tagName + attrName + attrPartials + '*)([' + spaces + ']*/>)', 'g');
-var findAttributes = new RegExp('(' + attrName + '\\s*=\\s*)([\'"]?)' + UIDC + '\\2', 'gi');
-
-function attrReplacer($0, $1, $2, $3) {
-  return '<' + $1 + $2.replace(findAttributes, replaceAttributes) + $3;
-}
-
-function replaceAttributes($0, $1, $2) {
-  return $1 + ($2 || '"') + UID + ($2 || '"');
-}
-
-function fullClosing($0, $1, $2) {
-  return VOID_ELEMENTS.test($1) ? $0 : ('<' + $1 + $2 + '></' + $1 + '>');
-}
-
-const {isArray} = Array;
-const {indexOf, slice} = [];
-
 var umap = _ => ({
   // About: get: _.get.bind(_)
   // It looks like WebKit/Safari didn't optimize bind at all,
@@ -162,7 +8,46 @@ var umap = _ => ({
   set: (key, value) => (_.set(key, value), value)
 });
 
-const ELEMENT_NODE$1 = 1;
+const attr = /([^\s\\>"'=]+)\s*=\s*(['"]?)$/;
+const empty = /^(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)$/i;
+const node = /<[a-z][^>]+$/i;
+const notNode = />[^<>]*$/;
+const selfClosing = /<([a-z]+[a-z0-9:._-]*)([^>]*?)(\/>)/ig;
+const trimEnd = /\s+$/;
+
+const isNode = (template, i) => (
+    0 < i-- && (
+    node.test(template[i]) || (
+      !notNode.test(template[i]) && isNode(template, i)
+    )
+  )
+);
+
+const regular = (original, name, extra) => empty.test(name) ?
+                  original : `<${name}${extra.replace(trimEnd,'')}></${name}>`;
+
+var instrument = (template, prefix, svg) => {
+  const text = [];
+  const {length} = template;
+  for (let i = 1; i < length; i++) {
+    const chunk = template[i - 1];
+    text.push(attr.test(chunk) && isNode(template, i) ?
+      chunk.replace(
+        attr,
+        (_, $1, $2) => `${prefix}${i - 1}=${$2 || '"'}${$1}${$2 ? '' : '"'}`
+      ) :
+      `${chunk}<!--${prefix}${i - 1}-->`
+    );
+  }
+  text.push(template[length - 1]);
+  const output = text.join('').trim();
+  return svg ? output : output.replace(selfClosing, regular);
+};
+
+const {isArray} = Array;
+const {indexOf, slice} = [];
+
+const ELEMENT_NODE = 1;
 const nodeType = 111;
 
 const remove = ({firstChild, lastChild}) => {
@@ -191,7 +76,7 @@ const persistent = fragment => {
   const firstChild = nodes[0];
   const lastChild = nodes[length - 1];
   return {
-    ELEMENT_NODE: ELEMENT_NODE$1,
+    ELEMENT_NODE,
     nodeType,
     firstChild,
     lastChild,
@@ -202,6 +87,251 @@ const persistent = fragment => {
           fragment.appendChild(nodes[i++]);
       }
       return fragment;
+    }
+  };
+};
+
+/**
+ * ISC License
+ *
+ * Copyright (c) 2020, Andrea Giammarchi, @WebReflection
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ *copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/**
+ * @param {Node} parentNode The container where children live
+ * @param {Node[]} a The list of current/live children
+ * @param {Node[]} b The list of future children
+ * @param {(entry: Node, action: number) => Node} get
+ * The callback invoked per each entry related DOM operation.
+ * @param {Node} [before] The optional node used as anchor to insert before.
+ * @returns {Node[]} The same list of future children.
+ */
+var udomdiff = (parentNode, a, b, get, before) => {
+  const bLength = b.length;
+  let aEnd = a.length;
+  let bEnd = bLength;
+  let aStart = 0;
+  let bStart = 0;
+  let map = null;
+  while (aStart < aEnd || bStart < bEnd) {
+    // append head, tail, or nodes in between: fast path
+    if (aEnd === aStart) {
+      // we could be in a situation where the rest of nodes that
+      // need to be added are not at the end, and in such case
+      // the node to `insertBefore`, if the index is more than 0
+      // must be retrieved, otherwise it's gonna be the first item.
+      const node = bEnd < bLength ?
+        (bStart ?
+          (get(b[bStart - 1], -0).nextSibling) :
+          get(b[bEnd - bStart], 0)) :
+        before;
+      while (bStart < bEnd)
+        parentNode.insertBefore(get(b[bStart++], 1), node);
+    }
+    // remove head or tail: fast path
+    else if (bEnd === bStart) {
+      while (aStart < aEnd) {
+        // remove the node only if it's unknown or not live
+        if (!map || !map.has(a[aStart]))
+          parentNode.removeChild(get(a[aStart], -1));
+        aStart++;
+      }
+    }
+    // same node: fast path
+    else if (a[aStart] === b[bStart]) {
+      aStart++;
+      bStart++;
+    }
+    // same tail: fast path
+    else if (a[aEnd - 1] === b[bEnd - 1]) {
+      aEnd--;
+      bEnd--;
+    }
+    // single last swap: fast path
+    else if ((aEnd - aStart) === 1 && (bEnd - bStart) === 1) {
+      // we could be in a situation where the node was either unknown,
+      // be at the end of the future nodes list, or be in the middle
+      if (map && map.has(a[aStart])) {
+        // in the end or middle case, find out where to insert it
+        parentNode.insertBefore(
+          get(b[bStart], 1),
+          get(bEnd < bLength ? b[bEnd] : before, 0)
+        );
+      }
+      // if the node is unknown, just replace it with the new one
+      else
+        parentNode.replaceChild(get(b[bStart], 1), get(a[aStart], -1));
+      // break the loop, as this was the very last operation to perform
+      break;
+    }
+    // reverse swap: also fast path
+    else if (
+      a[aStart] === b[bEnd - 1] &&
+      b[bStart] === a[aEnd - 1]
+    ) {
+      // this is a "shrink" operation that could happen in these cases:
+      // [1, 2, 3, 4, 5]
+      // [1, 4, 3, 2, 5]
+      // or asymmetric too
+      // [1, 2, 3, 4, 5]
+      // [1, 2, 3, 5, 6, 4]
+      const node = get(a[--aEnd], -1).nextSibling;
+      parentNode.insertBefore(
+        get(b[bStart++], 1),
+        get(a[aStart++], -1).nextSibling
+      );
+      parentNode.insertBefore(get(b[--bEnd], 1), node);
+      // mark the future index as identical (yeah, it's dirty, but cheap 👍)
+      // The main reason to do this, is that when a[aEnd] will be reached,
+      // the loop will likely be on the fast path, as identical to b[bEnd].
+      // In the best case scenario, the next loop will skip the tail,
+      // but in the worst one, this node will be considered as already
+      // processed, bailing out pretty quickly from the map index check
+      a[aEnd] = b[bEnd];
+    }
+    // map based fallback, "slow" path
+    else {
+      // the map requires an O(bEnd - bStart) operation once
+      // to store all future nodes indexes for later purposes.
+      // In the worst case scenario, this is a full O(N) cost,
+      // and such scenario happens at least when all nodes are different,
+      // but also if both first and last items of the lists are different
+      if (!map) {
+        map = new Map;
+        let i = bStart;
+        while (i < bEnd)
+          map.set(b[i], i++);
+      }
+      // if it's a future node, hence it needs some handling
+      if (map.has(a[aStart])) {
+        // grab the index of such node, 'cause it might have been processed
+        const index = map.get(a[aStart]);
+        // if it's not already processed, look on demand for the next LCS
+        if (bStart < index && index < bEnd) {
+          let i = aStart;
+          // counts the amount of nodes that are the same in the future
+          let sequence = 1;
+          while (++i < aEnd && i < bEnd) {
+            if (!map.has(a[i]) || map.get(a[i]) !== (index + sequence))
+              break;
+            sequence++;
+          }
+          // effort decision here: if the sequence is longer than replaces
+          // needed to reach such sequence, which would brings again this loop
+          // to the fast path, prepend the difference before a sequence,
+          // and move only the future list index forward, so that aStart
+          // and bStart will be aligned again, hence on the fast path.
+          // An example considering aStart and bStart are both 0:
+          // a: [1, 2, 3, 4]
+          // b: [7, 1, 2, 3, 6]
+          // this would place 7 before 1 and, from that time on, 1, 2, and 3
+          // will be processed at zero cost
+          if (sequence > (index - bStart)) {
+            const node = get(a[aStart], 0);
+            while (bStart < index)
+              parentNode.insertBefore(get(b[bStart++], 1), node);
+          }
+          // if the effort wasn't good enough, fallback to a replace,
+          // moving both source and target indexes forward, hoping that some
+          // similar node will be found later on, to go back to the fast path
+          else {
+            parentNode.replaceChild(
+              get(b[bStart++], 1),
+              get(a[aStart++], -1)
+            );
+          }
+        }
+        // otherwise move the source forward, 'cause there's nothing to do
+        else
+          aStart++;
+      }
+      // this node has no meaning in the future list, so it's more than safe
+      // to remove it, and check the next live node out instead, meaning
+      // that only the live list index should be forwarded
+      else
+        parentNode.removeChild(get(a[aStart++], -1));
+    }
+  }
+  return b;
+};
+
+const aria = node => value => {
+  for (const key in value)
+    node.setAttribute(key === 'role' ? key : `aria-${key}`, value[key]);
+};
+
+const attribute = (node, name) => {
+  let oldValue, orphan = true;
+  const attributeNode = document.createAttribute(name);
+  return newValue => {
+    if (oldValue !== newValue) {
+      oldValue = newValue;
+      if (oldValue == null) {
+        if (!orphan) {
+          node.removeAttributeNode(attributeNode);
+          orphan = true;
+        }
+      }
+      else {
+        attributeNode.value = newValue;
+        if (orphan) {
+          node.setAttributeNode(attributeNode);
+          orphan = false;
+        }
+      }
+    }
+  };
+};
+
+const data = ({dataset}) => value => {
+  for (const key in value)
+    dataset[key] = value[key];
+};
+
+const event = (node, name) => {
+  let oldValue, type = name.slice(2);
+  if (!(name in node) && name.toLowerCase() in node)
+    type = type.toLowerCase();
+  return newValue => {
+    const info = isArray(newValue) ? newValue : [newValue, false];
+    if (oldValue !== info[0]) {
+      if (oldValue)
+        node.removeEventListener(type, oldValue, info[1]);
+      if (oldValue = info[0])
+        node.addEventListener(type, oldValue, info[1]);
+    }
+  };
+};
+
+const ref = node => value => {
+  if (typeof value === 'function')
+    value(node);
+  else
+    value.current = node;
+};
+
+const setter = (node, key) => value => {
+  node[key] = value;
+};
+
+const text = node => {
+  let oldValue;
+  return newValue => {
+    if (oldValue != newValue) {
+      oldValue = newValue;
+      node.textContent = newValue == null ? '' : newValue;
     }
   };
 };
@@ -262,1380 +392,347 @@ var createContent = (function (document) {  var FRAGMENT = 'fragment';
 
 }(document));
 
-const append = (get, parent, children, start, end, before) => {
-  const isSelect = 'selectedIndex' in parent;
-  let noSelection = isSelect;
-  while (start < end) {
-    const child = get(children[start], 1);
-    parent.insertBefore(child, before);
-    if (isSelect && noSelection && child.selected) {
-      noSelection = !noSelection;
-      let {selectedIndex} = parent;
-      parent.selectedIndex = selectedIndex < 0 ?
-        start :
-        indexOf.call(parent.querySelectorAll('option'), child);
-    }
-    start++;
+// from a generic path, retrieves the exact targeted node
+const reducePath = ({childNodes}, i) => childNodes[i];
+
+// from a fragment container, create an array of indexes
+// related to its child nodes, so that it's possible
+// to retrieve later on exact node via reducePath
+const createPath = node => {
+  const path = [];
+  let {parentNode} = node;
+  while (parentNode) {
+    path.push(indexOf.call(parentNode.childNodes, node));
+    node = parentNode;
+    parentNode = node.parentNode;
   }
+  return path;
 };
 
-const eqeq = (a, b) => a == b;
+const {createTreeWalker, importNode} = document;
 
-const identity = O => O;
+// this "hack" tells the library if the browser is IE11 or old Edge
+const IE = importNode.length != 1;
 
-const indexOf$1 = (
-  moreNodes,
-  moreStart,
-  moreEnd,
-  lessNodes,
-  lessStart,
-  lessEnd,
-  compare
-) => {
-  const length = lessEnd - lessStart;
-  /* istanbul ignore if */
-  if (length < 1)
-    return -1;
-  while ((moreEnd - moreStart) >= length) {
-    let m = moreStart;
-    let l = lessStart;
-    while (
-      m < moreEnd &&
-      l < lessEnd &&
-      compare(moreNodes[m], lessNodes[l])
-    ) {
-      m++;
-      l++;
-    }
-    if (l === lessEnd)
-      return moreStart;
-    moreStart = m + 1;
-  }
-  return -1;
-};
+// IE11 and old Edge discard empty nodes when cloning, potentially
+// resulting in broken paths to find updates. The workaround here
+// is to import once, upfront, the fragment that will be cloned
+// later on, so that paths are retrieved from one already parsed,
+// hence without missing child nodes once re-cloned.
+const createFragment = IE ?
+  (text, type) => importNode.call(
+    document,
+    createContent(text, type),
+    true
+  ) :
+  createContent;
 
-const isReversed = (
-  futureNodes,
-  futureEnd,
-  currentNodes,
-  currentStart,
-  currentEnd,
-  compare
-) => {
-  while (
-    currentStart < currentEnd &&
-    compare(
-      currentNodes[currentStart],
-      futureNodes[futureEnd - 1]
-    )) {
-      currentStart++;
-      futureEnd--;
-    }  return futureEnd === 0;
-};
+// IE11 and old Edge have a different createTreeWalker signature that
+// has been deprecated in other browsers. This export is needed only
+// to guarantee the TreeWalker doesn't show warnings and, ultimately, works
+const createWalker = IE ?
+  fragment => createTreeWalker.call(document, fragment, 1 | 128, null, false) :
+  fragment => createTreeWalker.call(document, fragment, 1 | 128);
 
-const next = (get, list, i, length, before) => i < length ?
-              get(list[i], 0) :
-              (0 < i ?
-                get(list[i - 1], -0).nextSibling :
-                before);
+// this helper avoid code bloat around handleAnything() callback
+const diff = (comment, oldNodes, newNodes) => udomdiff(
+  comment.parentNode,
+  // TODO: there is a possible edge case where a node has been
+  //       removed manually, or it was a keyed one, attached
+  //       to a shared reference between renders.
+  //       In this case udomdiff might fail at removing such node
+  //       as its parent won't be the expected one.
+  //       The best way to avoid this issue is to filter oldNodes
+  //       in search of those not live, or not in the current parent
+  //       anymore, but this would require both a change to uwire,
+  //       exposing a parentNode from the firstChild, as example,
+  //       but also a filter per each diff that should exclude nodes
+  //       that are not in there, penalizing performance quite a lot.
+  //       As this has been also a potential issue with domdiff,
+  //       and both lighterhtml and hyperHTML might fail with this
+  //       very specific edge case, I might as well document this possible
+  //       "diffing shenanigan" and call it a day.
+  oldNodes,
+  newNodes,
+  diffable,
+  comment
+);
 
-const remove$1 = (get, children, start, end) => {
-  while (start < end)
-    drop(get(children[start++], -1));
-};
-
-// - - - - - - - - - - - - - - - - - - -
-// diff related constants and utilities
-// - - - - - - - - - - - - - - - - - - -
-
-const DELETION = -1;
-const INSERTION = 1;
-const SKIP = 0;
-const SKIP_OND = 50;
-
-const HS = (
-  futureNodes,
-  futureStart,
-  futureEnd,
-  futureChanges,
-  currentNodes,
-  currentStart,
-  currentEnd,
-  currentChanges
-) => {
-
-  let k = 0;
-  /* istanbul ignore next */
-  let minLen = futureChanges < currentChanges ? futureChanges : currentChanges;
-  const link = Array(minLen++);
-  const tresh = Array(minLen);
-  tresh[0] = -1;
-
-  for (let i = 1; i < minLen; i++)
-    tresh[i] = currentEnd;
-
-  const nodes = currentNodes.slice(currentStart, currentEnd);
-
-  for (let i = futureStart; i < futureEnd; i++) {
-    const index = nodes.indexOf(futureNodes[i]);
-    if (-1 < index) {
-      const idxInOld = index + currentStart;
-      k = findK(tresh, minLen, idxInOld);
-      /* istanbul ignore else */
-      if (-1 < k) {
-        tresh[k] = idxInOld;
-        link[k] = {
-          newi: i,
-          oldi: idxInOld,
-          prev: link[k - 1]
-        };
-      }
-    }
-  }
-
-  k = --minLen;
-  --currentEnd;
-  while (tresh[k] > currentEnd) --k;
-
-  minLen = currentChanges + futureChanges - k;
-  const diff = Array(minLen);
-  let ptr = link[k];
-  --futureEnd;
-  while (ptr) {
-    const {newi, oldi} = ptr;
-    while (futureEnd > newi) {
-      diff[--minLen] = INSERTION;
-      --futureEnd;
-    }
-    while (currentEnd > oldi) {
-      diff[--minLen] = DELETION;
-      --currentEnd;
-    }
-    diff[--minLen] = SKIP;
-    --futureEnd;
-    --currentEnd;
-    ptr = ptr.prev;
-  }
-  while (futureEnd >= futureStart) {
-    diff[--minLen] = INSERTION;
-    --futureEnd;
-  }
-  while (currentEnd >= currentStart) {
-    diff[--minLen] = DELETION;
-    --currentEnd;
-  }
-  return diff;
-};
-
-// this is pretty much the same petit-dom code without the delete map part
-// https://github.com/yelouafi/petit-dom/blob/bd6f5c919b5ae5297be01612c524c40be45f14a7/src/vdom.js#L556-L561
-const OND = (
-  futureNodes,
-  futureStart,
-  rows,
-  currentNodes,
-  currentStart,
-  cols,
-  compare
-) => {
-  const length = rows + cols;
-  const v = [];
-  let d, k, r, c, pv, cv, pd;
-  outer: for (d = 0; d <= length; d++) {
-    /* istanbul ignore if */
-    if (d > SKIP_OND)
-      return null;
-    pd = d - 1;
-    /* istanbul ignore next */
-    pv = d ? v[d - 1] : [0, 0];
-    cv = v[d] = [];
-    for (k = -d; k <= d; k += 2) {
-      if (k === -d || (k !== d && pv[pd + k - 1] < pv[pd + k + 1])) {
-        c = pv[pd + k + 1];
-      } else {
-        c = pv[pd + k - 1] + 1;
-      }
-      r = c - k;
-      while (
-        c < cols &&
-        r < rows &&
-        compare(
-          currentNodes[currentStart + c],
-          futureNodes[futureStart + r]
-        )
-      ) {
-        c++;
-        r++;
-      }
-      if (c === cols && r === rows) {
-        break outer;
-      }
-      cv[d + k] = c;
-    }
-  }
-
-  const diff = Array(d / 2 + length / 2);
-  let diffIdx = diff.length - 1;
-  for (d = v.length - 1; d >= 0; d--) {
-    while (
-      c > 0 &&
-      r > 0 &&
-      compare(
-        currentNodes[currentStart + c - 1],
-        futureNodes[futureStart + r - 1]
-      )
-    ) {
-      // diagonal edge = equality
-      diff[diffIdx--] = SKIP;
-      c--;
-      r--;
-    }
-    if (!d)
-      break;
-    pd = d - 1;
-    /* istanbul ignore next */
-    pv = d ? v[d - 1] : [0, 0];
-    k = c - r;
-    if (k === -d || (k !== d && pv[pd + k - 1] < pv[pd + k + 1])) {
-      // vertical edge = insertion
-      r--;
-      diff[diffIdx--] = INSERTION;
-    } else {
-      // horizontal edge = deletion
-      c--;
-      diff[diffIdx--] = DELETION;
-    }
-  }
-  return diff;
-};
-
-const applyDiff = (
-  diff,
-  get,
-  parentNode,
-  futureNodes,
-  futureStart,
-  currentNodes,
-  currentStart,
-  currentLength,
-  before
-) => {
-  const live = [];
-  const length = diff.length;
-  let currentIndex = currentStart;
-  let i = 0;
-  while (i < length) {
-    switch (diff[i++]) {
-      case SKIP:
-        futureStart++;
-        currentIndex++;
-        break;
-      case INSERTION:
-        // TODO: bulk appends for sequential nodes
-        live.push(futureNodes[futureStart]);
-        append(
-          get,
-          parentNode,
-          futureNodes,
-          futureStart++,
-          futureStart,
-          currentIndex < currentLength ?
-            get(currentNodes[currentIndex], 0) :
-            before
-        );
-        break;
-      case DELETION:
-        currentIndex++;
-        break;
-    }
-  }
-  i = 0;
-  while (i < length) {
-    switch (diff[i++]) {
-      case SKIP:
-        currentStart++;
-        break;
-      case DELETION:
-        // TODO: bulk removes for sequential nodes
-        if (-1 < live.indexOf(currentNodes[currentStart]))
-          currentStart++;
-        else
-          remove$1(
-            get,
-            currentNodes,
-            currentStart++,
-            currentStart
-          );
-        break;
-    }
-  }
-};
-
-const findK = (ktr, length, j) => {
-  let lo = 1;
-  let hi = length;
-  while (lo < hi) {
-    const mid = ((lo + hi) / 2) >>> 0;
-    if (j < ktr[mid])
-      hi = mid;
-    else
-      lo = mid + 1;
-  }
-  return lo;
-};
-
-const smartDiff = (
-  get,
-  parentNode,
-  futureNodes,
-  futureStart,
-  futureEnd,
-  futureChanges,
-  currentNodes,
-  currentStart,
-  currentEnd,
-  currentChanges,
-  currentLength,
-  compare,
-  before
-) => {
-  applyDiff(
-    OND(
-      futureNodes,
-      futureStart,
-      futureChanges,
-      currentNodes,
-      currentStart,
-      currentChanges,
-      compare
-    ) ||
-    HS(
-      futureNodes,
-      futureStart,
-      futureEnd,
-      futureChanges,
-      currentNodes,
-      currentStart,
-      currentEnd,
-      currentChanges
-    ),
-    get,
-    parentNode,
-    futureNodes,
-    futureStart,
-    currentNodes,
-    currentStart,
-    currentLength,
-    before
-  );
-};
-
-const drop = node => (node.remove || dropChild).call(node);
-
-function dropChild() {
-  const {parentNode} = this;
-  /* istanbul ignore else */
-  if (parentNode)
-    parentNode.removeChild(this);
-}
-
-/*! (c) 2018 Andrea Giammarchi (ISC) */
-
-const domdiff = (
-  parentNode,     // where changes happen
-  currentNodes,   // Array of current items/nodes
-  futureNodes,    // Array of future items/nodes
-  options         // optional object with one of the following properties
-                  //  before: domNode
-                  //  compare(generic, generic) => true if same generic
-                  //  node(generic) => Node
-) => {
-  if (!options)
-    options = {};
-
-  const compare = options.compare || eqeq;
-  const get = options.node || identity;
-  const before = options.before == null ? null : get(options.before, 0);
-
-  const currentLength = currentNodes.length;
-  let currentEnd = currentLength;
-  let currentStart = 0;
-
-  let futureEnd = futureNodes.length;
-  let futureStart = 0;
-
-  // common prefix
-  while (
-    currentStart < currentEnd &&
-    futureStart < futureEnd &&
-    compare(currentNodes[currentStart], futureNodes[futureStart])
-  ) {
-    currentStart++;
-    futureStart++;
-  }
-
-  // common suffix
-  while (
-    currentStart < currentEnd &&
-    futureStart < futureEnd &&
-    compare(currentNodes[currentEnd - 1], futureNodes[futureEnd - 1])
-  ) {
-    currentEnd--;
-    futureEnd--;
-  }
-
-  const currentSame = currentStart === currentEnd;
-  const futureSame = futureStart === futureEnd;
-
-  // same list
-  if (currentSame && futureSame)
-    return futureNodes;
-
-  // only stuff to add
-  if (currentSame && futureStart < futureEnd) {
-    append(
-      get,
-      parentNode,
-      futureNodes,
-      futureStart,
-      futureEnd,
-      next(get, currentNodes, currentStart, currentLength, before)
-    );
-    return futureNodes;
-  }
-
-  // only stuff to remove
-  if (futureSame && currentStart < currentEnd) {
-    remove$1(
-      get,
-      currentNodes,
-      currentStart,
-      currentEnd
-    );
-    return futureNodes;
-  }
-
-  const currentChanges = currentEnd - currentStart;
-  const futureChanges = futureEnd - futureStart;
-  let i = -1;
-
-  // 2 simple indels: the shortest sequence is a subsequence of the longest
-  if (currentChanges < futureChanges) {
-    i = indexOf$1(
-      futureNodes,
-      futureStart,
-      futureEnd,
-      currentNodes,
-      currentStart,
-      currentEnd,
-      compare
-    );
-    // inner diff
-    if (-1 < i) {
-      append(
-        get,
-        parentNode,
-        futureNodes,
-        futureStart,
-        i,
-        get(currentNodes[currentStart], 0)
-      );
-      append(
-        get,
-        parentNode,
-        futureNodes,
-        i + currentChanges,
-        futureEnd,
-        next(get, currentNodes, currentEnd, currentLength, before)
-      );
-      return futureNodes;
-    }
-  }
-  /* istanbul ignore else */
-  else if (futureChanges < currentChanges) {
-    i = indexOf$1(
-      currentNodes,
-      currentStart,
-      currentEnd,
-      futureNodes,
-      futureStart,
-      futureEnd,
-      compare
-    );
-    // outer diff
-    if (-1 < i) {
-      remove$1(
-        get,
-        currentNodes,
-        currentStart,
-        i
-      );
-      remove$1(
-        get,
-        currentNodes,
-        i + futureChanges,
-        currentEnd
-      );
-      return futureNodes;
-    }
-  }
-
-  // common case with one replacement for many nodes
-  // or many nodes replaced for a single one
-  /* istanbul ignore else */
-  if ((currentChanges < 2 || futureChanges < 2)) {
-    append(
-      get,
-      parentNode,
-      futureNodes,
-      futureStart,
-      futureEnd,
-      get(currentNodes[currentStart], 0)
-    );
-    remove$1(
-      get,
-      currentNodes,
-      currentStart,
-      currentEnd
-    );
-    return futureNodes;
-  }
-
-  // the half match diff part has been skipped in petit-dom
-  // https://github.com/yelouafi/petit-dom/blob/bd6f5c919b5ae5297be01612c524c40be45f14a7/src/vdom.js#L391-L397
-  // accordingly, I think it's safe to skip in here too
-  // if one day it'll come out like the speediest thing ever to do
-  // then I might add it in here too
-
-  // Extra: before going too fancy, what about reversed lists ?
-  //        This should bail out pretty quickly if that's not the case.
-  if (
-    currentChanges === futureChanges &&
-    isReversed(
-      futureNodes,
-      futureEnd,
-      currentNodes,
-      currentStart,
-      currentEnd,
-      compare
-    )
-  ) {
-    append(
-      get,
-      parentNode,
-      futureNodes,
-      futureStart,
-      futureEnd,
-      next(get, currentNodes, currentEnd, currentLength, before)
-    );
-    return futureNodes;
-  }
-
-  // last resort through a smart diff
-  smartDiff(
-    get,
-    parentNode,
-    futureNodes,
-    futureStart,
-    futureEnd,
-    futureChanges,
-    currentNodes,
-    currentStart,
-    currentEnd,
-    currentChanges,
-    currentLength,
-    compare,
-    before
-  );
-
-  return futureNodes;
-};
-
-/*! (c) Andrea Giammarchi - ISC */
-var importNode = (function (
-  document,
-  appendChild,
-  cloneNode,
-  createTextNode,
-  importNode
-) {
-  var native = importNode in document;
-  // IE 11 has problems with cloning templates:
-  // it "forgets" empty childNodes. This feature-detects that.
-  var fragment = document.createDocumentFragment();
-  fragment[appendChild](document[createTextNode]('g'));
-  fragment[appendChild](document[createTextNode](''));
-  var content = native ?
-    document[importNode](fragment, true) :
-    fragment[cloneNode](true);
-  return content.childNodes.length < 2 ?
-    function importNode(node, deep) {
-      var clone = node[cloneNode]();
-      for (var
-        childNodes = node.childNodes || [],
-        length = childNodes.length,
-        i = 0; deep && i < length; i++
-      ) {
-        clone[appendChild](importNode(childNodes[i], deep));
-      }
-      return clone;
-    } :
-    (native ?
-      document[importNode] :
-      function (node, deep) {
-        return node[cloneNode](!!deep);
-      }
-    );
-}(
-  document,
-  'appendChild',
-  'cloneNode',
-  'createTextNode',
-  'importNode'
-));
-
-var trim = ''.trim || function () {
-  return String(this).replace(/^\s+|\s+/g, '');
-};
-
-/* istanbul ignore next */
-var normalizeAttributes = UID_IE ?
-  function (attributes, parts) {
-    var html = parts.join(' ');
-    return parts.slice.call(attributes, 0).sort(function (left, right) {
-      return html.indexOf(left.name) <= html.indexOf(right.name) ? -1 : 1;
-    });
-  } :
-  function (attributes, parts) {
-    return parts.slice.call(attributes, 0);
-  }
-;
-
-function find(node, path) {
-  var length = path.length;
-  var i = 0;
-  while (i < length)
-    node = node.childNodes[path[i++]];
-  return node;
-}
-
-function parse(node, holes, parts, path) {
-  var childNodes = node.childNodes;
-  var length = childNodes.length;
-  var i = 0;
-  while (i < length) {
-    var child = childNodes[i];
-    switch (child.nodeType) {
-      case ELEMENT_NODE:
-        var childPath = path.concat(i);
-        parseAttributes(child, holes, parts, childPath);
-        parse(child, holes, parts, childPath);
-        break;
-      case COMMENT_NODE:
-        var textContent = child.textContent;
-        if (textContent === UID) {
-          parts.shift();
-          holes.push(
-            // basicHTML or other non standard engines
-            // might end up having comments in nodes
-            // where they shouldn't, hence this check.
-            SHOULD_USE_TEXT_CONTENT.test(node.nodeName) ?
-              Text(node, path) :
-              Any(child, path.concat(i))
-          );
-        } else {
-          switch (textContent.slice(0, 2)) {
-            case '/*':
-              if (textContent.slice(-2) !== '*/')
-                break;
-            case '\uD83D\uDC7B': // ghost
-              node.removeChild(child);
-              i--;
-              length--;
-          }
-        }
-        break;
-      case TEXT_NODE:
-        // the following ignore is actually covered by browsers
-        // only basicHTML ends up on previous COMMENT_NODE case
-        // instead of TEXT_NODE because it knows nothing about
-        // special style or textarea behavior
-        /* istanbul ignore if */
-        if (
-          SHOULD_USE_TEXT_CONTENT.test(node.nodeName) &&
-          trim.call(child.textContent) === UIDC
-        ) {
-          parts.shift();
-          holes.push(Text(node, path));
-        }
-        break;
-    }
-    i++;
-  }
-}
-
-function parseAttributes(node, holes, parts, path) {
-  var attributes = node.attributes;
-  var cache = [];
-  var remove = [];
-  var array = normalizeAttributes(attributes, parts);
-  var length = array.length;
-  var i = 0;
-  while (i < length) {
-    var attribute = array[i++];
-    var direct = attribute.value === UID;
-    var sparse;
-    if (direct || 1 < (sparse = attribute.value.split(UIDC)).length) {
-      var name = attribute.name;
-      // the following ignore is covered by IE
-      // and the IE9 double viewBox test
-      /* istanbul ignore else */
-      if (cache.indexOf(name) < 0) {
-        cache.push(name);
-        var realName = parts.shift().replace(
-          direct ?
-            /^(?:|[\S\s]*?\s)(\S+?)\s*=\s*('|")?$/ :
-            new RegExp(
-              '^(?:|[\\S\\s]*?\\s)(' + name + ')\\s*=\\s*(\'|")[\\S\\s]*',
-              'i'
-            ),
-            '$1'
-        );
-        var value = attributes[realName] ||
-                      // the following ignore is covered by browsers
-                      // while basicHTML is already case-sensitive
-                      /* istanbul ignore next */
-                      attributes[realName.toLowerCase()];
-        if (direct)
-          holes.push(Attr(value, path, realName, null));
-        else {
-          var skip = sparse.length - 2;
-          while (skip--)
-            parts.shift();
-          holes.push(Attr(value, path, realName, sparse));
-        }
-      }
-      remove.push(attribute);
-    }
-  }
-  length = remove.length;
-  i = 0;
-
-  /* istanbul ignore next */
-  var cleanValue = 0 < length && UID_IE && !('ownerSVGElement' in node);
-  while (i < length) {
-    // Edge HTML bug #16878726
-    var attr = remove[i++];
-    // IE/Edge bug lighterhtml#63 - clean the value or it'll persist
-    /* istanbul ignore next */
-    if (cleanValue)
-      attr.value = '';
-    // IE/Edge bug lighterhtml#64 - don't use removeAttributeNode
-    node.removeAttribute(attr.name);
-  }
-
-  // This is a very specific Firefox/Safari issue
-  // but since it should be a not so common pattern,
-  // it's probably worth patching regardless.
-  // Basically, scripts created through strings are death.
-  // You need to create fresh new scripts instead.
-  // TODO: is there any other node that needs such nonsense?
-  var nodeName = node.nodeName;
-  if (/^script$/i.test(nodeName)) {
-    // this used to be like that
-    // var script = createElement(node, nodeName);
-    // then Edge arrived and decided that scripts created
-    // through template documents aren't worth executing
-    // so it became this ... hopefully it won't hurt in the wild
-    var script = document.createElement(nodeName);
-    length = attributes.length;
-    i = 0;
-    while (i < length)
-      script.setAttributeNode(attributes[i++].cloneNode(true));
-    script.textContent = node.textContent;
-    node.parentNode.replaceChild(script, node);
-  }
-}
-
-function Any(node, path) {
-  return {
-    type: 'any',
-    node: node,
-    path: path
-  };
-}
-
-function Attr(node, path, name, sparse) {
-  return {
-    type: 'attr',
-    node: node,
-    path: path,
-    name: name,
-    sparse: sparse
-  };
-}
-
-function Text(node, path) {
-  return {
-    type: 'text',
-    node: node,
-    path: path
-  };
-}
-
-// globals
-
-var parsed = umap(new WeakMap$1);
-
-function createInfo(options, template) {
-  var markup = (options.convert || domsanitizer)(template);
-  var transform = options.transform;
-  if (transform)
-    markup = transform(markup);
-  var content = createContent(markup, options.type);
-  cleanContent(content);
-  var holes = [];
-  parse(content, holes, template.slice(0), []);
-  return {
-    content: content,
-    updates: function (content) {
-      var updates = [];
-      var len = holes.length;
-      var i = 0;
-      var off = 0;
-      while (i < len) {
-        var info = holes[i++];
-        var node = find(content, info.path);
-        switch (info.type) {
-          case 'any':
-            updates.push({fn: options.any(node, []), sparse: false});
-            break;
-          case 'attr':
-            var sparse = info.sparse;
-            var fn = options.attribute(node, info.name, info.node);
-            if (sparse === null)
-              updates.push({fn: fn, sparse: false});
-            else {
-              off += sparse.length - 2;
-              updates.push({fn: fn, sparse: true, values: sparse});
-            }
-            break;
-          case 'text':
-            updates.push({fn: options.text(node), sparse: false});
-            node.textContent = '';
-            break;
-        }
-      }
-      len += off;
-      return function () {
-        var length = arguments.length;
-        if (len !== (length - 1)) {
-          throw new Error(
-            (length - 1) + ' values instead of ' + len + '\n' +
-            template.join('${value}')
-          );
-        }
-        var i = 1;
-        var off = 1;
-        while (i < length) {
-          var update = updates[i - off];
-          if (update.sparse) {
-            var values = update.values;
-            var value = values[0];
-            var j = 1;
-            var l = values.length;
-            off += l - 2;
-            while (j < l)
-              value += arguments[i++] + values[j++];
-            update.fn(value);
-          }
+// if an interpolation represents a comment, the whole
+// diffing will be related to such comment.
+// This helper is in charge of understanding how the new
+// content for such interpolation/hole should be updated
+const handleAnything = comment => {
+  let oldValue, text, nodes = [];
+  const anyContent = newValue => {
+    switch (typeof newValue) {
+      // primitives are handled as text content
+      case 'string':
+      case 'number':
+      case 'boolean':
+        if (oldValue !== newValue) {
+          oldValue = newValue;
+          if (text)
+            text.textContent = newValue;
           else
-            update.fn(arguments[i++]);
+            text = document.createTextNode(newValue);
+          nodes = diff(comment, nodes, [text]);
         }
-        return content;
-      };
-    }
-  };
-}
-
-function createDetails(options, template) {
-  var info = parsed.get(template) || parsed.set(template, createInfo(options, template));
-  return info.updates(importNode.call(document, info.content, true));
-}
-
-var empty = [];
-function domtagger(options) {
-  var previous = empty;
-  var updates = cleanContent;
-  return function (template) {
-    if (previous !== template)
-      updates = createDetails(options, (previous = template));
-    return updates.apply(null, arguments);
-  };
-}
-
-function cleanContent(fragment) {
-  var childNodes = fragment.childNodes;
-  var i = childNodes.length;
-  while (i--) {
-    var child = childNodes[i];
-    if (
-      child.nodeType !== 1 &&
-      trim.call(child.textContent).length === 0
-    ) {
-      fragment.removeChild(child);
-    }
-  }
-}
-
-/*! (c) Andrea Giammarchi - ISC */
-var hyperStyle = (function (){  // from https://github.com/developit/preact/blob/33fc697ac11762a1cb6e71e9847670d047af7ce5/src/varants.js
-  var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
-  var hyphen = /([^A-Z])([A-Z]+)/g;
-  return function hyperStyle(node, original) {
-    return 'ownerSVGElement' in node ? svg(node, original) : update(node.style, false);
-  };
-  function ized($0, $1, $2) {
-    return $1 + '-' + $2.toLowerCase();
-  }
-  function svg(node, original) {
-    var style;
-    if (original)
-      style = original.cloneNode(true);
-    else {
-      node.setAttribute('style', '--hyper:style;');
-      style = node.getAttributeNode('style');
-    }
-    style.value = '';
-    node.setAttributeNode(style);
-    return update(style, true);
-  }
-  function toStyle(object) {
-    var key, css = [];
-    for (key in object)
-      css.push(key.replace(hyphen, ized), ':', object[key], ';');
-    return css.join('');
-  }
-  function update(style, isSVG) {
-    var oldType, oldValue;
-    return function (newValue) {
-      var info, key, styleValue, value;
-      switch (typeof newValue) {
-        case 'object':
-          if (newValue) {
-            if (oldType === 'object') {
-              if (!isSVG) {
-                if (oldValue !== newValue) {
-                  for (key in oldValue) {
-                    if (!(key in newValue)) {
-                      style[key] = '';
-                    }
-                  }
-                }
-              }
-            } else {
-              if (isSVG)
-                style.value = '';
-              else
-                style.cssText = '';
-            }
-            info = isSVG ? {} : style;
-            for (key in newValue) {
-              value = newValue[key];
-              styleValue = typeof value === 'number' &&
-                                  !IS_NON_DIMENSIONAL.test(key) ?
-                                  (value + 'px') : value;
-              if (!isSVG && /^--/.test(key))
-                info.setProperty(key, styleValue);
-              else
-                info[key] = styleValue;
-            }
-            oldType = 'object';
-            if (isSVG)
-              style.value = toStyle((oldValue = info));
-            else
-              oldValue = newValue;
-            break;
-          }
-        default:
+        break;
+      // null, and undefined are used to cleanup previous content
+      case 'object':
+      case 'undefined':
+        if (newValue == null) {
           if (oldValue != newValue) {
-            oldType = 'string';
             oldValue = newValue;
-            if (isSVG)
-              style.value = newValue || '';
-            else
-              style.cssText = newValue || '';
+            nodes = diff(comment, nodes, []);
           }
           break;
-      }
-    };
-  }
-}());
-
-// generic attributes helpers
-const hyperAttribute = (node, original) => {
-  let oldValue;
-  let owner = false;
-  const attribute = original.cloneNode(true);
-  return newValue => {
-    if (oldValue !== newValue) {
-      oldValue = newValue;
-      if (attribute.value !== newValue) {
-        if (newValue == null) {
-          if (owner) {
-            owner = false;
-            node.removeAttributeNode(attribute);
-          }
-          attribute.value = newValue;
-        } else {
-          attribute.value = newValue;
-          if (!owner) {
-            owner = true;
-            node.setAttributeNode(attribute);
-          }
         }
-      }
-    }
-  };
-};
-
-// events attributes helpers
-const hyperEvent = (node, name) => {
-  let oldValue;
-  let type = name.slice(2);
-  if (name.toLowerCase() in node)
-    type = type.toLowerCase();
-  return newValue => {
-    const info = isArray(newValue) ? newValue : [newValue, false];
-    if (oldValue !== info[0]) {
-      if (oldValue)
-        node.removeEventListener(type, oldValue, info[1]);
-      if (oldValue = info[0])
-        node.addEventListener(type, oldValue, info[1]);
-    }
-  };
-};
-
-// special attributes helpers
-const hyperProperty = (node, name) => {
-  let oldValue;
-  return newValue => {
-    if (oldValue !== newValue) {
-      oldValue = newValue;
-      if (node[name] !== newValue) {
-        if (newValue == null) {
-          // cleanup before dropping the attribute to fix IE/Edge gotcha
-          node[name] = '';
-          node.removeAttribute(name);
-        } else
-          node[name] = newValue;
-      }
-    }
-  };
-};
-
-// special hooks helpers
-const hyperRef = node => {
-  return ref => {
-    if (typeof ref === 'function')
-      ref(node);
-    else
-      ref.current = node;
-  };
-};
-
-const hyperSetter = (node, name, svg) => svg ?
-  value => {
-    try {
-      node[name] = value;
-    }
-    catch (nope) {
-      node.setAttribute(name, value);
-    }
-  } :
-  value => {
-    node[name] = value;
-  };
-
-// list of attributes that should not be directly assigned
-const readOnly = /^(?:form|list)$/i;
-
-// simplifies text node creation
-const text = (node, text) => node.ownerDocument.createTextNode(text);
-
-function Tagger(type) {
-  this.type = type;
-  return domtagger(this);
-}
-Tagger.prototype = {
-
-  // there are four kind of attributes, and related behavior:
-  //  * events, with a name starting with `on`, to add/remove event listeners
-  //  * special, with a name present in their inherited prototype, accessed directly
-  //  * regular, accessed through get/setAttribute standard DOM methods
-  //  * style, the only regular attribute that also accepts an object as value
-  //    so that you can style=${{width: 120}}. In this case, the behavior has been
-  //    fully inspired by Preact library and its simplicity.
-  attribute(node, name, original) {
-    const isSVG = this.type === 'svg';
-    switch (name) {
-      case 'class':
-        if (isSVG)
-          return hyperAttribute(node, original);
-        name = 'className';
-      case 'data':
-      case 'props':
-        return hyperProperty(node, name);
-      case 'style':
-        return hyperStyle(node, original, isSVG);
-      case 'ref':
-        return hyperRef(node);
-      default:
-        if (name.slice(0, 1) === '.')
-          return hyperSetter(node, name.slice(1), isSVG);
-        if (name.slice(0, 2) === 'on')
-          return hyperEvent(node, name);
-        if (name in node && !(isSVG || readOnly.test(name)))
-          return hyperProperty(node, name);
-        return hyperAttribute(node, original);
-
-    }
-  },
-
-  // in a hyper(node)`<div>${content}</div>` case
-  // everything could happen:
-  //  * it's a JS primitive, stored as text
-  //  * it's null or undefined, the node should be cleaned
-  //  * it's a promise, update the content once resolved
-  //  * it's an explicit intent, perform the desired operation
-  //  * it's an Array, resolve all values if Promises and/or
-  //    update the node with the resulting list of content
-  any(node, childNodes) {
-    const diffOptions = {node: diffable, before: node};
-    const {type} = this;
-    let fastPath = false;
-    let oldValue;
-    const anyContent = value => {
-      switch (typeof value) {
-        case 'string':
-        case 'number':
-        case 'boolean':
-          if (fastPath) {
-            if (oldValue !== value) {
-              oldValue = value;
-              childNodes[0].textContent = value;
-            }
-          } else {
-            fastPath = true;
-            oldValue = value;
-            childNodes = domdiff(
-              node.parentNode,
-              childNodes,
-              [text(node, value)],
-              diffOptions
-            );
-          }
+        // arrays and nodes have a special treatment
+        if (isArray(newValue)) {
+          oldValue = newValue;
+          // arrays can be used to cleanup, if empty
+          if (newValue.length === 0)
+            nodes = diff(comment, nodes, []);
+          // or diffed, if these contains nodes or "wires"
+          else if (typeof newValue[0] === 'object')
+            nodes = diff(comment, nodes, newValue);
+          // in all other cases the content is stringified as is
+          else
+            anyContent(String(newValue));
           break;
-        case 'function':
-          anyContent(value(node));
-          break;
-        case 'object':
-        case 'undefined':
-          if (value == null) {
-            fastPath = false;
-            childNodes = domdiff(
-              node.parentNode,
-              childNodes,
-              [],
-              diffOptions
-            );
-            break;
-          }
-        default:
-          fastPath = false;
-          oldValue = value;
-          if (isArray(value)) {
-            if (value.length === 0) {
-              if (childNodes.length) {
-                childNodes = domdiff(
-                  node.parentNode,
-                  childNodes,
-                  [],
-                  diffOptions
-                );
-              }
-            } else {
-              switch (typeof value[0]) {
-                case 'string':
-                case 'number':
-                case 'boolean':
-                  anyContent(String(value));
-                  break;
-                case 'function':
-                  anyContent(value.map(invoke, node));
-                  break;
-                case 'object':
-                  if (isArray(value[0])) {
-                    value = value.concat.apply([], value);
-                  }
-                default:
-                  childNodes = domdiff(
-                    node.parentNode,
-                    childNodes,
-                    value,
-                    diffOptions
-                  );
-                  break;
-              }
-            }
-          } else if ('ELEMENT_NODE' in value) {
-            childNodes = domdiff(
-              node.parentNode,
-              childNodes,
-              value.nodeType === 11 ?
-                slice.call(value.childNodes) :
-                [value],
-              diffOptions
-            );
-          } else if ('text' in value) {
-            anyContent(String(value.text));
-          } else if ('any' in value) {
-            anyContent(value.any);
-          } else if ('html' in value) {
-            childNodes = domdiff(
-              node.parentNode,
-              childNodes,
-              slice.call(
-                createContent(
-                  [].concat(value.html).join(''),
-                  type
-                ).childNodes
-              ),
-              diffOptions
-            );
-          } else if ('length' in value) {
-            anyContent(slice.call(value));
-          }
-          break;
-      }
-    };
-    return anyContent;
-  },
-
-  // style or textareas don't accept HTML as content
-  // it's pointless to transform or analyze anything
-  // different from text there but it's worth checking
-  // for possible defined intents.
-  text(node) {
-    let oldValue;
-    const textContent = value => {
-      if (oldValue !== value) {
-        oldValue = value;
-        const type = typeof value;
-        if (type === 'object' && value) {
-          if ('text' in value) {
-            textContent(String(value.text));
-          } else if ('any' in value) {
-            textContent(value.any);
-          } else if ('html' in value) {
-            textContent([].concat(value.html).join(''));
-          } else if ('length' in value) {
-            textContent(slice.call(value).join(''));
-          }
-        } else if (type === 'function') {
-          textContent(value(node));
-        } else {
-          node.textContent = value == null ? '' : value;
         }
-      }
-    };
-    return textContent;
-  }
+        // if the new value is a DOM node, or a wire, and it's
+        // different from the one already live, then it's diffed.
+        // if the node is a fragment, it's appended once via its childNodes
+        // There is no `else` here, meaning if the content
+        // is not expected one, nothing happens, as easy as that.
+        if ('ELEMENT_NODE' in newValue && oldValue !== newValue) {
+          oldValue = newValue;
+          nodes = diff(
+            comment,
+            nodes,
+            newValue.nodeType === 11 ?
+              slice.call(newValue.childNodes) :
+              [newValue]
+          );
+        }
+    }
+  };
+  return anyContent;
 };
 
-function invoke(callback) {
-  return callback(this);
+// attributes can be:
+//  * ref=${...}      for hooks and other purposes
+//  * aria=${...}     for aria attributes
+//  * data=${...}     for dataset related attributes
+//  * .setter=${...}  for Custom Elements setters or nodes with setters
+//                    such as buttons, details, options, select, etc
+//  * onevent=${...}  to automatically handle event listeners
+//  * generic=${...}  to handle an attribute just like an attribute
+const handleAttribute = (node, name) => {
+  if (name === 'ref')
+    return ref(node);
+
+  if (name === 'aria')
+    return aria(node);
+
+  if (name === 'data')
+    return data(node);
+
+  if (name.slice(0, 1) === '.')
+    return setter(node, name.slice(1));
+
+  if (name.slice(0, 2) === 'on')
+    return event(node, name);
+
+  return attribute(node, name);
+};
+
+// each mapped update carries the update type and its path
+// the type is either node, attribute, or text, while
+// the path is how to retrieve the related node to update.
+// In the attribute case, the attribute name is also carried along.
+function handlers(options) {
+  const {type, path} = options;
+  const node = path.reduceRight(reducePath, this);
+  return type === 'node' ?
+    handleAnything(node) :
+    (type === 'attr' ?
+      handleAttribute(node, options.name) :
+      text(node));
 }
 
-const {create, freeze, keys} = Object;
+// the prefix is used to identify either comments, attributes, or nodes
+// that contain the related unique id. In the attribute cases
+// isµX="attribute-name" will be used to map current X update to that
+// attribute name, while comments will be like <!--isµX-->, to map
+// the update to that specific comment node, hence its parent.
+// style and textarea will have <!--isµX--> text content, and are handled
+// directly through text-only updates.
+const prefix = 'isµ';
 
-const cache = umap(new WeakMap$1);
+// Template Literals are unique per scope and static, meaning a template
+// should be parsed once, and once only, as it will always represent the same
+// content, within the exact same amount of updates each time.
+// This cache relates each template to its unique content and updates.
+const cache = umap(new WeakMap);
 
-const createRender = Tagger => ({
-  html: outer('html', Tagger),
-  svg: outer('svg', Tagger),
-  render(where, what) {
-    const hole = typeof what === 'function' ? what() : what;
-    const info = cache.get(where) || cache.set(where, createCache());
-    const wire = hole instanceof LighterHole ?
-                  unroll(Tagger, info, hole) : hole;
-    if (wire !== info.wire) {
-      info.wire = wire;
-      where.textContent = '';
-      where.appendChild(wire.valueOf());
-    }
-    return where;
-  }
+const createCache = () => ({
+  stack: [],    // each template gets a stack for each interpolation "hole"
+
+  entry: null,  // each entry contains details, such as:
+                //  * the template that is representing
+                //  * the type of node it represents (html or svg)
+                //  * the content fragment with all nodes
+                //  * the list of updates per each node (template holes)
+                //  * the "wired" node or fragment that will get updates
+                // if the template or type are different from the previous one
+                // the entry gets re-created each time
+
+  wire: null    // each rendered node represent some wired content and
+                // this reference to the latest one. If different, the node
+                // will be cleaned up and the new "wire" will be appended
 });
 
-const createCache = () => ({stack: [], entry: null, wire: null});
-
-const outer = (type, Tagger) => {
-  const cache = umap(new WeakMap$1);
-  const fixed = info => function () {
-    return unroll(Tagger, info, hole.apply(null, arguments));
-  };
-  hole.for = (ref, id) => {
-    const memo = cache.get(ref) || cache.set(ref, create(null));
-    return memo[id] || (memo[id] = fixed(createCache()));
-  };
-  hole.node = function () {
-    return unroll(
-      Tagger,
-      createCache(),
-      hole.apply(null, arguments)
-    ).valueOf();
-  };
-  return hole;
-  function hole() {
-    return new LighterHole(type, tta.apply(null, arguments));
-  }
+// the entry stored in the rendered node cache, and per each "hole"
+const createEntry = (type, template) => {
+  const {content, updates} = mapUpdates(type, template);
+  return {type, template, content, updates, wire: null};
 };
 
-const unroll = (Tagger, info, {type, template, values}) => {
+// a template is instrumented to be able to retrieve where updates are needed.
+// Each unique template becomes a fragment, cloned once per each other
+// operation based on the same template, i.e. data => html`<p>${data}</p>`
+const mapTemplate = (type, template) => {
+  const text = instrument(template, prefix, type === 'svg');
+  const content = createFragment(text, type);
+  // once instrumented and reproduced as fragment, it's crawled
+  // to find out where each update is in the fragment tree
+  const tw = createWalker(content);
+  const nodes = [];
+  const length = template.length - 1;
+  let i = 0;
+  // updates are searched via unique names, linearly increased across the tree
+  // <div isµ0="attr" isµ1="other"><!--isµ2--><style><!--isµ3--</style></div>
+  let search = `${prefix}${i}`;
+  while (i < length) {
+    const node = tw.nextNode();
+    // if not all updates are bound but there's nothing else to crawl
+    // it means that there is something wrong with the template.
+    if (!node)
+      throw `bad template: ${text}`;
+    // if the current node is a comment, and it contains isµX
+    // it means the update should take care of any content
+    if (node.nodeType === 8) {
+      // The only comments to be considered are those
+      // which content is exactly the same as the searched one.
+      if (node.textContent === search) {
+        nodes.push({type: 'node', path: createPath(node)});
+        search = `${prefix}${++i}`;
+      }
+    }
+    else {
+      // if the node is not a comment, loop through all its attributes
+      // named isµX and relate attribute updates to this node and the
+      // attribute name, retrieved through node.getAttribute("isµX")
+      // the isµX attribute will be removed as irrelevant for the layout
+      while (node.hasAttribute(search)) {
+        nodes.push({
+          type: 'attr',
+          path: createPath(node),
+          name: node.getAttribute(search),
+        });
+        node.removeAttribute(search);
+        search = `${prefix}${++i}`;
+      }
+      // if the node was a style or a textarea one, check its content
+      // and if it is <!--isµX--> then update tex-only this node
+      if (
+        /^(?:style|textarea)$/i.test(node.tagName) &&
+        node.textContent.trim() === `<!--${search}-->`
+      ){
+        nodes.push({type: 'text', path: createPath(node)});
+        search = `${prefix}${++i}`;
+      }
+    }
+  }
+  // once all nodes to update, or their attributes, are known, the content
+  // will be cloned in the future to represent the template, and all updates
+  // related to such content retrieved right away without needing to re-crawl
+  // the exact same template, and its content, more than once.
+  return {content, nodes};
+};
+
+// if a template is unknown, perform the previous mapping, otherwise grab
+// its details such as the fragment with all nodes, and updates info.
+const mapUpdates = (type, template) => {
+  const {content, nodes} = (
+    cache.get(template) ||
+    cache.set(template, mapTemplate(type, template))
+  );
+  // clone deeply the fragment
+  const fragment = importNode.call(document, content, true);
+  // and relate an update handler per each node that needs one
+  const updates = nodes.map(handlers, fragment);
+  // return the fragment and all updates to use within its nodes
+  return {content: fragment, updates};
+};
+
+// as html and svg can be nested calls, but no parent node is known
+// until rendered somewhere, the unroll operation is needed to
+// discover what to do with each interpolation, which will result
+// into an update operation.
+const unroll = (info, {type, template, values}) => {
   const {length} = values;
-  unrollValues(Tagger, info, values, length);
+  // interpolations can contain holes and arrays, so these need
+  // to be recursively discovered
+  unrollValues(info, values, length);
   let {entry} = info;
-  if (!entry || (entry.template !== template || entry.type !== type)) {
-    const tag = new Tagger(type);
-    info.entry = (entry = {
-      type,
-      template,
-      tag,
-      wire: persistent(tag(template, ...values))
-    });
-  }
-  else
-    entry.tag(template, ...values);
-  return entry.wire;
+  // if the cache entry is either null or different from the template
+  // and the type this unroll should resolve, create a new entry
+  // assigning a new content fragment and the list of updates.
+  if (!entry || (entry.template !== template || entry.type !== type))
+    info.entry = (entry = createEntry(type, template));
+  const {content, updates, wire} = entry;
+  // even if the fragment and its nodes is not live yet,
+  // it is already possible to update via interpolations values.
+  for (let i = 0; i < length; i++)
+    updates[i](values[i]);
+  // if the entry was new, or representing a different template or type,
+  // create a new persistent entity to use during diffing.
+  // This is simply a DOM node, when the template has a single container,
+  // as in `<p></p>`, or a "wire" in `<p></p><p></p>` and similar cases.
+  return wire || (entry.wire = persistent(content));
 };
 
-const unrollValues = (Tagger, {stack}, values, length) => {
+// the stack retains, per each interpolation value, the cache
+// related to each interpolation value, or null, if the render
+// was conditional and the value is not special (Array or Hole)
+const unrollValues = ({stack}, values, length) => {
   for (let i = 0; i < length; i++) {
     const hole = values[i];
+    // each Hole gets unrolled and re-assigned as value
+    // so that domdiff will deal with a node/wire, not with a hole
     if (hole instanceof Hole)
       values[i] = unroll(
-        Tagger,
         stack[i] || (stack[i] = createCache()),
         hole
       );
+    // arrays are recursively resolved so that each entry will contain
+    // also a DOM node or a wire, hence it can be diffed if/when needed
     else if (isArray(hole))
       unrollValues(
-        Tagger,
         stack[i] || (stack[i] = createCache()),
         hole,
         hole.length
       );
+    // if the value is nothing special, the stack doesn't need to retain data
+    // this is useful also to cleanup previously retained data, if the value
+    // was a Hole, or an Array, but not anymore, i.e.:
+    // const update = content => html`<div>${content}</div>`;
+    // update(listOfItems); update(null); update(html`hole`)
     else
       stack[i] = null;
   }
@@ -1643,14 +740,87 @@ const unrollValues = (Tagger, {stack}, values, length) => {
     stack.splice(length);
 };
 
-freeze(LighterHole);
-function LighterHole(type, args) {
+/**
+ * Holds all details wrappers needed to render the content further on.
+ * @constructor
+ * @param {string} type The hole type, either `html` or `svg`.
+ * @param {string[]} template The template literals used to the define the content.
+ * @param {Array} values Zero, one, or more interpolated values to render.
+ */
+function Hole(type, template, values) {
   this.type = type;
-  this.template = args.shift();
-  this.values = args;
-}const Hole = LighterHole;
+  this.template = template;
+  this.values = values;
+}
 
-const {render, html, svg} = createRender(Tagger);
+const {create, defineProperties} = Object;
+
+// each rendered node gets its own cache
+const cache$1 = umap(new WeakMap);
+
+// both `html` and `svg` template literal tags are polluted
+// with a `for(ref[, id])` and a `node` tag too
+const tag = type => {
+  // both `html` and `svg` tags have their own cache
+  const keyed = umap(new WeakMap);
+  // keyed operations always re-use the same cache and unroll
+  // the template and its interpolations right away
+  const fixed = cache => (template, ...values) => unroll(
+    cache,
+    {type, template, values}
+  );
+  return defineProperties(
+    // non keyed operations are recognized as instance of Hole
+    // during the "unroll", recursively resolved and updated
+    (template, ...values) => new Hole(type, template, values),
+    {
+      for: {
+        // keyed operations need a reference object, usually the parent node
+        // which is showing keyed results, and optionally a unique id per each
+        // related node, handy with JSON results and mutable list of objects
+        // that usually carry a unique identifier
+        value(ref, id) {
+          const memo = keyed.get(ref) || keyed.set(ref, create(null));
+          return memo[id] || (memo[id] = fixed(createCache()));
+        }
+      },
+      node: {
+        // it is possible to create one-off content out of the box via node tag
+        // this might return the single created node, or a fragment with all
+        // nodes present at the root level and, of course, their child nodes
+        value: (template, ...values) => unroll(
+          createCache(),
+          {type, template, values}
+        ).valueOf()
+      }
+    }
+  );
+};
+
+const html = tag('html');
+
+const svg = tag('svg');
+
+// rendering means understanding what `html` or `svg` tags returned
+// and it relates a specific node to its own unique cache.
+// Each time the content to render changes, the node is cleaned up
+// and the new new content is appended, and if such content is a Hole
+// then it's "unrolled" to resolve all its inner nodes.
+const render = (where, what) => {
+  const hole = typeof what === 'function' ? what() : what;
+  const info = cache$1.get(where) || cache$1.set(where, createCache());
+  const wire = hole instanceof Hole ? unroll(info, hole) : hole;
+  if (wire !== info.wire) {
+    info.wire = wire;
+    where.textContent = '';
+    // valueOf() simply returns the node itself, but in case it was a "wire"
+    // it will eventually re-append all nodes to its fragment so that such
+    // fragment can be re-appended many times in a meaningful way
+    // (wires are basically persistent fragments facades with special behavior)
+    where.appendChild(wire.valueOf());
+  }
+  return where;
+};
 
 const lazyload = (element) => {
   const io = new IntersectionObserver((entries, observer) => {
@@ -1665,48 +835,46 @@ const lazyload = (element) => {
   io.observe(element);
 };
 
-const status = response => {
+const renderCard = (item, i) => {
+  // 
+  /// data=${{src: src}}
+  const url = `Screenshot of ${(new URL(item.href)).hostname.replace('www.', '')}`;
+  const src = item.metrics.performance === 0 ? '' : `/images/thumbs/${(new URL(item.href)).hostname.replace('www.', '')}.jpg`;
+  return html`
+  <li class="card" data=${{i: i}}>
+    <div style="height: 3rem">
+      <a href="${item.href}"><h3>${item.title}</h3></a>
+    </div>
+    <img loading="lazy" data=${{src: src}} alt=${url}/>
+    <ul>
+      <li>Performace: ${Math.round(item.metrics.performance)}%</li>
+      <li>First contentful paint: ${item.metrics.firstContentfulPaint.toFixed(2)}Sec</li>
+      <li>Best practices: ${Math.round(item.metrics.bestPractices)}%</li>
+      <li>Accessibility: ${Math.round(item.metrics.accessibility)}%</li>
+      <li>SEO: ${Math.round(item.metrics.seo)}%</li>
+      <li>carbon footprint: ${item.metrics.carbon.toFixed(3)}</li>
+    </ul>
+    <details>
+      <summary>Description</summary>
+      <p>${item.text}</p>
+    </details>
+  </li>`
+};
+fetch('/data/final.json')
+.then(response => {
   if (response.status >= 200 && response.status < 300) {
     return Promise.resolve(response)
   } else {
     return Promise.reject(new Error(response.statusText))
   }
-};
-
-const json = response => {
-  return response.json()
-};
-
-fetch('/data/final.json')
-.then(status)
-.then(json)
+})
+.then(response => { return response.json(); })
 .then(data => {
   render(document.getElementById('content'), html`
   <blockquote>
     <p><b>Data from Joomla's <a rel="external" href="https://showcase.joomla.org">Showcase Directory</a></b></p>
   </blockquote>
-  <ul class="cards">${
-    data.map((item, i) => 
-      html`
-        <li class="card" data-i=${i}>
-          <div style="height: 3rem">
-            <a href="${item.href}"><h3>${item.title}</h3></a>
-          </div>
-          <img loading="lazy" data-src="${item.metrics.performance === 0 ? '' : `/images/thumbs/${(new URL(item.href)).hostname.replace('www.', '')}`}.jpg" alt="Screenshot of ${(new URL(item.href)).hostname.replace('www.', '')}">
-          <ul>
-            <li>Performace: ${Math.round(item.metrics.performance)}%</li>
-            <li>First contentful paint: ${item.metrics.firstContentfulPaint.toFixed(2)}Sec</li>
-            <li>Best practices: ${Math.round(item.metrics.bestPractices)}%</li>
-            <li>Accessibility: ${Math.round(item.metrics.accessibility)}%</li>
-            <li>SEO: ${Math.round(item.metrics.seo)}%</li>
-            <li>carbon footprint: ${item.metrics.carbon.toFixed(3)}</li>
-          </ul>
-          <details>
-            <summary>Description</summary>
-            <p>${item.text}</p>
-          </details>
-        </li>`)
-    }</ul>`);
+  <ul class="cards">${data.map((item, i) => renderCard(item, i))}</ul>`);
 
   const images = [].slice.call(document.querySelectorAll('img[loading="lazy"]'));
   images.forEach(lazyload);
