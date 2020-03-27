@@ -30,6 +30,9 @@ fetch('/data/final.json')
 .then(json)
 .then(data => {
   render(document.getElementById('content'), html`
+  <blockquote>
+    <p><b>Data from Joomla's <a rel="external" href="https://showcase.joomla.org">Showcase Directory</a></b></p>
+  </blockquote>
   <ul class="cards">${
     data.map((item, i) => 
       html`
