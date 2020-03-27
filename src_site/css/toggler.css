@@ -2,7 +2,7 @@ dark-light-switch {
 	position: relative;
 	display: block;
 	top: .8rem;
-	width: 44px;
+	width: 10px;
 	height: 44px;
 	margin-left: 10px;
 }
@@ -73,6 +73,7 @@ button[aria-pressed="false"]:before {
 
 dark-light-switch button {
   border-radius: 15px;
+  height: 26px;
 }
 
 dark-light-switch button:before {

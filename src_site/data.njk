@@ -4,8 +4,9 @@ title: All the data from showcase.joomla.org
 ---
 <style>{{ 'css/data.css' | inlineCss | safe }}</style>
 
-<div id="goback"><a href="/">Back to home</a></div>
+{% include "nav.njk" %}
+
 <div id="content">
-    <h1> Please wait, we're loading the required data...</h1>
+    <h1> Please wait, we're loading the required data (almost 1Mb)...</h1>
 </div>
 <script type="module">{{ 'js/data.esm.js' | inlineCss | safe }}</script>
