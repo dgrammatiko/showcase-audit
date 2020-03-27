@@ -1,0 +1,35 @@
+---
+layout: base.njk
+title: Some solutions
+---
+{% include "nav.njk" %}
+
+<style>{{ 'css/index.css' | inlineCss | safe }}</style>
+
+<h1>Some proposals</h1>
+<h3>Images, video and audio files</h3>
+<p>At the time I was involved with the new media manager I wrote and published a <a rel="external" href="https://github.com/ttc-freebies/plugin-responsive-images">plugin</a> to demonstrate a possible way to introduce source sets (srcset attribute) for images. The idea then kicked a GSOC project that resulted in a rather complicated solution.</p>
+<p>Don't go for the rather small target group that the GSOC plugin is covering, just get my plugin and patch the media manager so it will make a set of resized images for each upload. Also patch the intro and fullarticle images and <b>introduce the lazyload attribute</b>.</p>
+<p>Do the same also for video and audio files. That's that, problem SOLVED</p> 
+
+<h3>Deliver properly the javascript files</h3>
+<p>This is extremely easy: scripts that are ES6 should also have an attribute <i>type="module"</i> and the legacy, ES5, scripts should have the attributes <i>nomodule defer</i></p>
+<p>Couple of lines and problem SOLVED</p>
+
+<h4>oh wait...</h4>
+<p>The inline ES5 scripts, unfortunately, will not respect the defer attribute (thank you Internet Explorer for popularising this antipattern).</p>
+<p>So, the inline scripts, both ES6 and ES5, I would suggest that will be collected (not only the ones in the document _script array but also any instance in the body tag of the component and the modules of the page) and appeneded at the bottom of the page (before the closing body tag).</p>
+<p>There are multiple wins with this approach:</p>
+<ul>
+    <li>Scripts will start d/l as soon as possible</li>
+    <li>Scripts will NOT block rendering</li>
+    <li>Native feature detection: modern browsers will d/l the ES6 old browsers (IE11) will d/l the old version</li>
+    <li>No IIFE for the modern browsers, modules have their own scope</li>
+    <li>No need for all these DOMContentLoaded events, the scripts will be executed in the order they were given once the parsing of the document is completed</li>
+</ul>
+
+<h3>Deal with the CSS</h3>
+<p>I've raised the argument about Bootstrap not being the best way forward quite a few times, so I won't be doing that once again here.</p>
+<p>But please ask yourselves: is it wise to stick to something that it's proven that it doesn't work in the current era?</p>
+<p>The fear that everything will break badly if the project drops Bootstrap from the front end template I guess is very nicely exterminated by Charlie Lodder and his take on a template using the HIQ css.</p>
+
