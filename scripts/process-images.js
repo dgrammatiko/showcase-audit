@@ -3,7 +3,7 @@ const { sync } = require('glob');
 const sharp = require('sharp');
 const { mkdirpSync } = require('fs-extra');
 
-if (!existsSync('images/thumbs')) mkdirpSync('images/thumbs');
+mkdirpSync('images/thumbs');
 
 sync(`./src_images/*.{jpg,png}`).forEach((file) => {
   console.log('Processing:', file)
