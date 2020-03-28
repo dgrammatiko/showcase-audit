@@ -10,12 +10,12 @@
     <style>{{ 'css/almond.css' | inlineCss | safe }}</style>
     <style>{{ 'css/toggler.css' | inlineCss | safe }}</style>
     <script>this.customElements||document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');</script>
+    <script src="/js/toggler.esm.js" type=module defer></script>
+    <script src="/js/toggler.es5.js" nomodule defer></script>
   </head>
 
   <body>
     {{ layoutContent | safe }}
-    <script src="/js/toggler.esm.js" type=module></script>
-    <script src="/js/toggler.es5.js" nomodule></script>
   </body>
 
 </html>
