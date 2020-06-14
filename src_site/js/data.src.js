@@ -21,7 +21,7 @@ const renderCard = (item, i) => {
     <div style="height: 3rem">
       <a href="${item.href}"><h3>${item.title}</h3></a>
     </div>
-    <img loading="lazy" data=${{src: src}} alt=${url}/>
+    <img loading="lazy" .data=${{src: src}} alt=${url}/>
     <ul>
       <li>Performace: ${Math.round(item.metrics.performance)}%</li>
       <li>First contentful paint: ${item.metrics.firstContentfulPaint.toFixed(2)}Sec</li>
