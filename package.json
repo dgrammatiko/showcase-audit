@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "ce-theme-switcher": "0.0.3",
-    "lighterhtml": "^3.0.0",
+    "lighterhtml": "^4.0.0",
     "uhtml": "^2.0.0"
   }
 }
