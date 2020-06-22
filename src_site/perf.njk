@@ -1,0 +1,15 @@
+---
+layout: base.njk
+title: A perf test
+
+---
+
+{% for perf in collections.all | reverse %}
+<article>
+    <a href="{{ perf.url | url }}">
+        <h2>{% if perf.data.title %}{{ perf.data.title }}{% endif %}</h2>
+    </a>
+</article>
+{% endfor %}
+
+<hr>
